@@ -5,10 +5,12 @@
 #include <boost/asio/ssl.hpp>
 #include <chrono>
 #include <ctime>
-#include <iomanip>
-#include <iostream>
+//#include <iomanip>
+//#include <iostream>
+#include <jwt-cpp/jwt.h>
 #include <map>
 #include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <thread>
 #include <websocketpp/client.hpp>
@@ -35,8 +37,6 @@ private:
   void onMessage(const std::string &msg);
   void displayMetrics();
 
-  ws_client createClient();
-  static context_ptr onTlsInit(websocketpp::connection_hdl);
   std::string createJWT();
 
   std::string url_;
@@ -60,7 +60,7 @@ private:
   };
 
   std::map<std::string, Metrics> metrics_;
-  std::chrono::steady_clock::time_point last_time_;
+  std::chrono::steady_clock::time_point last_print_time_;
 };
 
 } // namespace orderbook
