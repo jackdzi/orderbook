@@ -14,6 +14,9 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(Threads REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(jwt-cpp CONFIG REQUIRED)
+find_path(MATPLOTLIB_CPP_INCLUDE_DIRS "matplotlibcpp.h")
+find_package(Python3 REQUIRED COMPONENTS Development)
+
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/include

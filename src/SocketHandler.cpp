@@ -4,8 +4,8 @@
 
 namespace orderbook {
 
-SocketHandler::SocketHandler(const std::string &url, const std::string &api_key)
-    : url_(url), api_key_(api_key),
+SocketHandler::SocketHandler(const std::string &url)
+    : url_(url),
       last_print_time_(std::chrono::steady_clock::now()) {}
 
 SocketHandler::~SocketHandler() { stop(); }
@@ -42,15 +42,23 @@ std::pair<std::string, std::string> generate_signature() {
       std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
           .count());
 
-  const std::string private_key = "HIDDEN";
+  std::string api_key;
+  std::string home = std::getenv("HOME");
+  std::ifstream key_file(home + "/Documents/keys/cdp_api_key.json");
+  nlohmann::json key;
+  if (key_file.is_open()) {
+    key_file >> key;
+    api_key = key["privateKey"].get<std::string>();
+  }
+  key_file.close();
 
   auto token = jwt::create()
                    .set_type("JWT")
                    .set_issuer("cdp")
                    .set_issued_at(now)
                    .set_expires_at(now + std::chrono::minutes{2})
-                   .set_subject("HIDDEN")
-                   .sign(jwt::algorithm::es256("HIDDEN", private_key));
+                   .set_subject("069a39ab-affe-45bc-96bb-a1a90ab23389")
+                   .sign(jwt::algorithm::es256("069a39ab-affe-45bc-96bb-a1a90ab23389", api_key));
 
   return {token, timestamp};
 }
@@ -83,13 +91,12 @@ void SocketHandler::run() {
 
       nlohmann::json subscription = {
           {"type", "subscribe"},
-          {"product_ids", {"USD-BTC", "BTC-USD"}},
+          {"product_ids", {"BTC-USD"}},
           {"channels", {"level2_batch"}},
           {"signature", token},
-          {"api_key", "HIDDEN"},
+          {"api_key", "069a39ab-affe-45bc-96bb-a1a90ab23389"},
           {"passphrase", ""},
           {"timestamp", timestamp}};
-      std::cout << "AA" << std::endl;
       std::string message = subscription.dump();
       websocketpp::lib::error_code ec;
       client.send(hdl, message, websocketpp::frame::opcode::text, ec);
@@ -129,13 +136,23 @@ void SocketHandler::onMessage(const std::string &msg) {
   try {
     auto j = json::parse(msg);
 
-    std::cout << j << std::endl;
-    // Only process ticker messages for metrics
+    //std::cout << j << std::endl;
+    if (j.contains("changes")) {
+        for (const auto& change : j["changes"]) {
+            if (change.size() > 2) {
+                if (change[0] == "buy") {
+                    buy_total_ += std::stod(static_cast<std::string>(change[2]));
+                } else if (change[0] == "sell") {
+                    sell_total_ += std::stod(static_cast<std::string>(change[2]));
+                }
+            }
+        }
+    }
+    displayMetrics();
     if (j.contains("type") && j["type"] == "ticker") {
       std::string product_id = j["product_id"];
       auto &metric = metrics_[product_id];
       std::cout << "Called!" << std::endl;
-      // Update metrics using get<std::string>() for proper conversion
       metric.last_price = std::stod(j["price"].get<std::string>());
       metric.high_24h = std::stod(j["high_24h"].get<std::string>());
       metric.low_24h = std::stod(j["low_24h"].get<std::string>());
@@ -152,7 +169,6 @@ void SocketHandler::onMessage(const std::string &msg) {
       metric.total_volume += last_size;
 
       // Print updated metrics
-      displayMetrics();
     }
 
     // Don't need to process heartbeat messages for now
@@ -162,16 +178,6 @@ void SocketHandler::onMessage(const std::string &msg) {
   }
 }
 
-void SocketHandler::displayMetrics() {
-  // TODO: Make it use a graph
-  auto now = std::chrono::steady_clock::now();
-  std::cout << "Attempting to print metrics..." << std::endl;
-
-  auto time_diff =
-      std::chrono::duration_cast<std::chrono::seconds>(now - last_print_time_)
-          .count();
-    last_print_time_ = now;
-}
 
 } // namespace orderbook
 //

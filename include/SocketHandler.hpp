@@ -15,6 +15,7 @@
 #include <thread>
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
+#include <fstream>
 
 namespace orderbook {
 
@@ -25,7 +26,7 @@ typedef std::shared_ptr<boost::asio::ssl::context> context_ptr;
 
 class SocketHandler {
 public:
-  SocketHandler(const std::string& url, const std::string& api_key);
+  SocketHandler(const std::string& url);
   ~SocketHandler();
 
   void start();
@@ -58,6 +59,12 @@ private:
     double total_volume;
     double volitility;
   };
+
+  std::vector<double> momentum_data_;
+  std::vector<double> time_data_;
+  double buy_total_;
+  double sell_total_;
+  int counter_ = 0;
 
   std::map<std::string, Metrics> metrics_;
   std::chrono::steady_clock::time_point last_print_time_;
