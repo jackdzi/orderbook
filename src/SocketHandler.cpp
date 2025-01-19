@@ -136,7 +136,7 @@ void SocketHandler::onMessage(const std::string &msg) {
   try {
     auto j = json::parse(msg);
 
-    //std::cout << j << std::endl;
+    std::cout << j << std::endl;
     if (j.contains("changes")) {
         for (const auto& change : j["changes"]) {
             if (change.size() > 2) {

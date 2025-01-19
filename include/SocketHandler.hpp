@@ -61,6 +61,7 @@ private:
   };
 
   std::vector<double> momentum_data_;
+  std::vector<double> momentum_avg_data_;
   std::vector<double> time_data_;
   double buy_total_;
   double sell_total_;
