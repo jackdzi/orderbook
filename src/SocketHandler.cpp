@@ -1,6 +1,7 @@
 #include <SocketHandler.hpp>
 #include <chrono>
 #include <cstdlib>
+#include <fstream>
 
 namespace orderbook {
 
