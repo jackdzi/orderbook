@@ -15,7 +15,6 @@
 #include <thread>
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
-#include <fstream>
 
 namespace orderbook {
 

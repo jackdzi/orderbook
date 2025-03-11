@@ -5,8 +5,7 @@
 namespace orderbook {
 
 SocketHandler::SocketHandler(const std::string &url)
-    : url_(url),
-      last_print_time_(std::chrono::steady_clock::now()) {}
+    : url_(url), last_print_time_(std::chrono::steady_clock::now()) {}
 
 SocketHandler::~SocketHandler() { stop(); }
 
@@ -58,7 +57,8 @@ std::pair<std::string, std::string> generate_signature() {
                    .set_issued_at(now)
                    .set_expires_at(now + std::chrono::minutes{2})
                    .set_subject("069a39ab-affe-45bc-96bb-a1a90ab23389")
-                   .sign(jwt::algorithm::es256("069a39ab-affe-45bc-96bb-a1a90ab23389", api_key));
+                   .sign(jwt::algorithm::es256(
+                       "069a39ab-affe-45bc-96bb-a1a90ab23389", api_key));
 
   return {token, timestamp};
 }
@@ -138,15 +138,15 @@ void SocketHandler::onMessage(const std::string &msg) {
 
     std::cout << j << std::endl;
     if (j.contains("changes")) {
-        for (const auto& change : j["changes"]) {
-            if (change.size() > 2) {
-                if (change[0] == "buy") {
-                    buy_total_ += std::stod(static_cast<std::string>(change[2]));
-                } else if (change[0] == "sell") {
-                    sell_total_ += std::stod(static_cast<std::string>(change[2]));
-                }
-            }
+      for (const auto &change : j["changes"]) {
+        if (change.size() > 2) {
+          if (change[0] == "buy") {
+            buy_total_ += std::stod(static_cast<std::string>(change[2]));
+          } else if (change[0] == "sell") {
+            sell_total_ += std::stod(static_cast<std::string>(change[2]));
+          }
         }
+      }
     }
     displayMetrics();
     if (j.contains("type") && j["type"] == "ticker") {
@@ -163,12 +163,10 @@ void SocketHandler::onMessage(const std::string &msg) {
       metric.last_update_time = j["time"];
       metric.trade_count++;
 
-      // Update VWAP calculations
       double last_size = std::stod(j["last_size"].get<std::string>());
       metric.volume_weighted_price += metric.last_price * last_size;
       metric.total_volume += last_size;
 
-      // Print updated metrics
     }
 
     // Don't need to process heartbeat messages for now
@@ -177,7 +175,6 @@ void SocketHandler::onMessage(const std::string &msg) {
     std::cerr << "onMessage parse error: " << ex.what() << "\n";
   }
 }
-
 
 } // namespace orderbook
 //
