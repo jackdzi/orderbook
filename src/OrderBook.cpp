@@ -1,5 +1,6 @@
 #include "OrderBook.hpp"
 #include "Helpers.hpp"
+#include <thread>
 
 namespace orderbook {
 
@@ -56,6 +57,19 @@ std::vector<OrderUpdate> OrderBook::matchOrders() {
 
   lock_.unlock();
   return updates;
+}
+
+void OrderBook::matchingEngineThread(std::atomic<bool> &running) {
+  while (running) {
+    auto updates = this->matchOrders();
+
+    if (!updates.empty()) {
+      for (const auto &update : updates) {
+        // TODO: Process updates
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
 }
 
 } // namespace orderbook

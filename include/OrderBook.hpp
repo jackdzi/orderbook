@@ -20,6 +20,8 @@ public:
 
   std::vector<OrderUpdate> matchOrders();
 
+  void matchingEngineThread(std::atomic<bool> &running);
+
 private:
   // Price maps to another map of orderId -> Order
   // Bids sorted descending, Asks sorted ascending
